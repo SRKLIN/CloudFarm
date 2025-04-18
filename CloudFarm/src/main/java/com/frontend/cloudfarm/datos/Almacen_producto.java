@@ -6,8 +6,8 @@ package com.frontend.cloudfarm.datos;
 
 /**
  *
- * @author KLIN
+ * @author 50372
  */
-public class DatosLogin {
+public class Almacen_producto {
     
 }
