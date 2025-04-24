@@ -10,4 +10,14 @@
         <maven.compiler.release>24</maven.compiler.release>
         <exec.mainClass>com.frontend.cloudfarm.CloudFarm</exec.mainClass>
     </properties>
+    
+    <!-- Se agregó la dependencia de SQL Server para la conexión -->
+    <dependencies>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>12.10.0.jre11</version>
+        </dependency>
+    </dependencies>
+    
 </project>

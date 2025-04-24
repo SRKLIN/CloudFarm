@@ -16,7 +16,7 @@ public class AlmacenPanel extends JPanel {
     private final Color COLOR_FONDO = new Color(240, 248, 255); // Azul claro
     private final Color COLOR_BOTON_PRINCIPAL = new Color(0, 112, 192); // Azul oscuro
     private final Color COLOR_BOTON_SECUNDARIO = new Color(70, 130, 180); // Azul medio
-    private final Color COLOR_TEXTO_BOTON = Color.WHITE;
+    private final Color COLOR_TEXTO_BOTON = Color.BLACK;
     private final Color COLOR_BORDES = new Color(150, 180, 210);
     private final Color COLOR_CABECERA_TABLA = new Color(200, 220, 255);
     private final Color COLOR_EXITO = new Color(220, 255, 220); // Verde claro (éxito)
