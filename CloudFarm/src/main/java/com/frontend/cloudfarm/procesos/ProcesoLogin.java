@@ -5,29 +5,23 @@
 package com.frontend.cloudfarm.procesos;
 
 import com.frontend.cloudfarm.datos.ConexionDB;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class ProcesoLogin {
-    public static String validarUsuario(String usuario, String contraseña) {
-        String cargo = null;
-        String query = "SELECT Cargo FROM Usuarios WHERE Usuario = ? AND Contraseña = ?";
+    public static String validarUsuario(String usuario, String contraseña) throws SQLException {
+        String sql = "SELECT Cargo FROM Usuarios WHERE Usuario = ? AND Contraseña = ?";
         
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(query)) {
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             
             stmt.setString(1, usuario);
             stmt.setString(2, contraseña);
-            ResultSet rs = stmt.executeQuery();
             
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                cargo = rs.getString("Cargo");
+                return rs.getString("Cargo");
             }
-        } catch (SQLException e) {
-            System.err.println("Error en login: " + e.getMessage());
         }
-        return cargo; // Retorna "gerente", "cajero", o null si falla para proceder en el ejecutable
+        return null;
     }
 }

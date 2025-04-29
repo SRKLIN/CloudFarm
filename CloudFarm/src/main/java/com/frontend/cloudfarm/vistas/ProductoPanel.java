@@ -10,20 +10,19 @@ import java.awt.event.ActionEvent;
 import com.frontend.cloudfarm.procesos.ProcesosProducto;
 import com.frontend.cloudfarm.datos.DatosProducto;
 
-//parte de omar integrada al nuevo codigo 
 public class ProductoPanel extends JPanel {
     private JTextField txtcodigo, txtnombre, txtcategoria, txtcantidad, txtprecio;
     private JButton btnagregar, btnmodificar, btnlimpiar, btnbuscar;
     private ProcesosProducto procesos;
     
-    // Colores para la interfaz del panel y botones 
-    private final Color COLOR_FONDO = new Color(240, 248, 255); // Azul claro muy suave
-    private final Color COLOR_BOTON_PRINCIPAL = new Color(0, 112, 192); // Azul farmacéutico
-    private final Color COLOR_BOTON_SECUNDARIO = new Color(70, 130, 180); // Azul medio
+    // Colores para la interfaz
+    private final Color COLOR_FONDO = new Color(240, 248, 255);
+    private final Color COLOR_BOTON_PRINCIPAL = new Color(0, 112, 192);
+    private final Color COLOR_BOTON_SECUNDARIO = new Color(70, 130, 180);
     private final Color COLOR_TEXTO_BOTON = Color.BLACK;
     private final Color COLOR_BORDES = new Color(150, 180, 210);
-    private final Color COLOR_ERROR = new Color(255, 220, 220); // Fondo rojo claro para errores
-    private final Color COLOR_EXITO = new Color(220, 255, 220); // Fondo verde claro para éxito
+    private final Color COLOR_ERROR = new Color(255, 220, 220);
+    private final Color COLOR_EXITO = new Color(220, 255, 220);
 
     public ProductoPanel() {
         procesos = new ProcesosProducto();
@@ -37,7 +36,6 @@ public class ProductoPanel extends JPanel {
         setLayout(new BorderLayout(15, 15));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Panel de formulario
         JPanel formPanel = new JPanel(new GridBagLayout());
         formPanel.setBackground(COLOR_FONDO);
         
@@ -45,21 +43,18 @@ public class ProductoPanel extends JPanel {
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.anchor = GridBagConstraints.WEST;
         
-        // Campos de texto
         txtcodigo = createStyledTextField(20);
         txtnombre = createStyledTextField(20);
         txtcategoria = createStyledTextField(20);
         txtcantidad = createStyledTextField(20);
         txtprecio = createStyledTextField(20);
         
-        // los campos para poner
         addField(formPanel, txtcodigo, "Código:", gbc, 0);
         addField(formPanel, txtnombre, "Nombre:", gbc, 1);
         addField(formPanel, txtcategoria, "Categoría:", gbc, 2);
         addField(formPanel, txtcantidad, "Cantidad:", gbc, 3);
         addField(formPanel, txtprecio, "Precio:", gbc, 4);
         
-        // Panel de botones  se separan para identificar 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 15));
         buttonPanel.setBackground(COLOR_FONDO);
         
@@ -76,8 +71,6 @@ public class ProductoPanel extends JPanel {
         add(formPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
     }
-    
-    //para los estilos 
 
     private JTextField createStyledTextField(int columns) {
         JTextField field = new JTextField(columns);
@@ -101,7 +94,6 @@ public class ProductoPanel extends JPanel {
         panel.add(field, gbc);
     }
 
-    //creacion de botones en la interfaz y se agrega el efecto hover que cuando pones el mouse cambia
     private JButton createFarmaButton(String text, Color bgColor) {
         JButton button = new JButton(text);
         button.setBackground(bgColor);
@@ -114,7 +106,6 @@ public class ProductoPanel extends JPanel {
         ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Efecto hover
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 button.setBackground(bgColor.brighter());
@@ -126,11 +117,8 @@ public class ProductoPanel extends JPanel {
         
         return button;
     }
-    
-    //se agrega los estilos 
 
     private void applyStyles() {
-        // Estilo para diálogos
         UIManager.put("OptionPane.background", COLOR_FONDO);
         UIManager.put("Panel.background", COLOR_FONDO);
         UIManager.put("Button.background", COLOR_BOTON_SECUNDARIO);
@@ -141,30 +129,101 @@ public class ProductoPanel extends JPanel {
         btnagregar.addActionListener(this::agregarProducto);
         btnmodificar.addActionListener(this::modificarProducto);
         btnlimpiar.addActionListener(e -> limpiarCampos());
+        btnbuscar.addActionListener(this::buscarProducto);
     }
     
-    //si se agrego el producto al almacen correctamente
-
     private void agregarProducto(ActionEvent e) {
         DatosProducto producto = capturarDatos();
         if (producto != null) {
-            procesos.agregarProducto(producto);
-            showMessage("Producto agregado correctamente", "Éxito", COLOR_EXITO);
-            limpiarCampos();
+            try {
+                procesos.agregarProducto(producto);
+                showMessage("Producto agregado correctamente", "Éxito", COLOR_EXITO);
+                limpiarCampos();
+            } catch (Exception ex) {
+                showMessage("Error al agregar: " + ex.getMessage(), "Error", COLOR_ERROR);
+            }
         }
     }
 
     private void modificarProducto(ActionEvent e) {
         DatosProducto producto = capturarDatos();
         if (producto != null) {
-            boolean modificado = procesos.modificarProducto(producto);
-            if (modificado) {
+            if (procesos.modificarProducto(producto)) {
                 showMessage("Producto modificado correctamente", "Éxito", COLOR_EXITO);
             } else {
-                showMessage("No se pudo modificar el producto", "Error", COLOR_ERROR);
+                showMessage("No se pudo modificar el producto. Verifique que el código exista.", "Error", COLOR_ERROR);
             }
             limpiarCampos();
         }
+    }
+    
+    private void buscarProducto(ActionEvent e) {
+        String idText = txtcodigo.getText().trim();
+        
+        if (idText.isEmpty()) {
+            showMessage("Por favor ingrese un código de producto para buscar", "Campo vacío", COLOR_ERROR);
+            txtcodigo.requestFocusInWindow();
+            return;
+        }
+        
+        try {
+            int idProducto = Integer.parseInt(idText);
+            DatosProducto producto = procesos.buscarProducto(idProducto);
+            
+            if (producto != null) {
+                mostrarProductoEnFormulario(producto);
+                showMessage("Producto encontrado", "Éxito", COLOR_EXITO);
+            } else {
+                showMessage("No se encontró el producto con ID: " + idProducto, "Error", COLOR_ERROR);
+                limpiarCamposExceptoCodigo();
+            }
+        } catch (NumberFormatException ex) {
+            showMessage("ID inválido. Debe ser un número", "Error de formato", COLOR_ERROR);
+        }
+    }
+    
+    private void limpiarCampos() {
+        txtcodigo.setText("");
+        txtnombre.setText("");
+        txtcategoria.setText("");
+        txtcantidad.setText("");
+        txtprecio.setText("");
+        txtcodigo.requestFocusInWindow();
+    }
+    
+    private DatosProducto capturarDatos() {
+        try {
+            String nombre = txtnombre.getText().trim();
+            String categoria = txtcategoria.getText().trim();
+            int cantidad = Integer.parseInt(txtcantidad.getText().trim());
+            double precio = Double.parseDouble(txtprecio.getText().trim());
+
+            if (nombre.isEmpty() || categoria.isEmpty() || txtcodigo.getText().trim().isEmpty()) {
+                showMessage("Complete todos los campos", "Validación", COLOR_ERROR);
+                return null;
+            }
+
+            int idProducto = Integer.parseInt(txtcodigo.getText().trim());
+
+            return new DatosProducto(idProducto, nombre, categoria, cantidad, precio);
+        } catch (NumberFormatException ex) {
+            showMessage("Código, cantidad o precio inválidos. Use números válidos", "Error de formato", COLOR_ERROR);
+            return null;
+        }
+    }
+    
+    private void mostrarProductoEnFormulario(DatosProducto producto) {
+        txtcodigo.setText(String.valueOf(producto.getId_Producto()));
+        txtnombre.setText(producto.getNombre());
+        txtcategoria.setText(producto.getCategoria());
+        txtcantidad.setText(String.valueOf(producto.getCantidad()));
+        txtprecio.setText(String.valueOf(producto.getPrecio()));
+    }
+
+    private void limpiarCamposExceptoCodigo() {
+        String codigo = txtcodigo.getText();
+        limpiarCampos();
+        txtcodigo.setText(codigo);
     }
 
     private void showMessage(String message, String title, Color bgColor) {
@@ -176,36 +235,5 @@ public class ProductoPanel extends JPanel {
         panel.add(label);
         
         JOptionPane.showMessageDialog(this, panel, title, JOptionPane.PLAIN_MESSAGE);
-    }
-    //captura los datos
-
-    private DatosProducto capturarDatos() {
-        try {
-            String codigo = txtcodigo.getText().trim();
-            String nombre = txtnombre.getText().trim();
-            String categoria = txtcategoria.getText().trim();
-            int cantidad = Integer.parseInt(txtcantidad.getText().trim());
-            double precio = Double.parseDouble(txtprecio.getText().trim());
-
-            if (codigo.isEmpty() || nombre.isEmpty() || categoria.isEmpty()) {
-                showMessage("Complete todos los campos", "Validación", COLOR_ERROR);
-                return null;
-            }
-
-            return new DatosProducto(codigo, nombre, categoria, cantidad, precio);
-        } catch (NumberFormatException ex) {
-            showMessage("Cantidad o precio inválidos. Use números válidos", "Error de formato", COLOR_ERROR);
-            return null;
-        }
-    }
-    //limpieza de datos
-
-    private void limpiarCampos() {
-        txtcodigo.setText("");
-        txtnombre.setText("");
-        txtcategoria.setText("");
-        txtcantidad.setText("");
-        txtprecio.setText("");
-        txtcodigo.requestFocusInWindow();
     }
 }

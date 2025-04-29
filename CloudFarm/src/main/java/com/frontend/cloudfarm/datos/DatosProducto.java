@@ -3,64 +3,67 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.frontend.cloudfarm.datos;
+
 /**
  *
  * @author anton
  */
 public class DatosProducto {
-    private String codigo;
-    private String nombre;
-    private String categoria;
-    private int cantidad;
-    private double precio;
+    private int Id_Producto;
+    private String Nombre;
+    private String Categoria;
+    private int Cantidad;
+    private double Precio;
 
-    // Constructor
-    public DatosProducto(String codigo, String nombre, String categoria, int cantidad, double precio) {
-        this.codigo = codigo;
-        this.nombre = nombre;
-        this.categoria = categoria;
-        this.cantidad = cantidad;
-        this.precio = precio;
+    public DatosProducto(int Id_Producto, String Nombre, String Categoria, int Cantidad, double Precio) {
+        this.Id_Producto = Id_Producto;
+        this.Nombre = Nombre;
+        this.Categoria = Categoria;
+        this.Cantidad = Cantidad;
+        this.Precio = Precio;
     }
 
-    // Getters y setters
-    public String getCodigo() {
-        return codigo;
+    public int getId_Producto() {
+        return Id_Producto;
     }
 
-    public void setCodigo(String codigo) {
-        this.codigo = codigo;
+    public void setId_Producto(int Id_Producto) {
+        this.Id_Producto = Id_Producto;
     }
 
     public String getNombre() {
-        return nombre;
+        return Nombre;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setNombre(String Nombre) {
+        this.Nombre = Nombre;
     }
 
     public String getCategoria() {
-        return categoria;
+        return Categoria;
     }
 
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
+    public void setCategoria(String Categoria) {
+        this.Categoria = Categoria;
     }
 
     public int getCantidad() {
-        return cantidad;
+        return Cantidad;
     }
 
-    public void setCantidad(int cantidad) {
-        this.cantidad = cantidad;
+    public void setCantidad(int Cantidad) {
+        this.Cantidad = Cantidad;
     }
 
     public double getPrecio() {
-        return precio;
+        return Precio;
     }
 
-    public void setPrecio(double precio) {
-        this.precio = precio;
+    public void setPrecio(double Precio) {
+        this.Precio = Precio;
+    }
+
+    public Object getIdProducto() {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

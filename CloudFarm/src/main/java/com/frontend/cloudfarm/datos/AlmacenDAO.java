@@ -4,83 +4,134 @@
  */
 package com.frontend.cloudfarm.datos;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AlmacenDAO {
-    private List<AlmacenProducto> productos = new ArrayList<>();
-    private int ultimoId = 0;
+    private static final String SQL_SELECT = "SELECT Id_Producto, Nombre, Categoria, Cantidad, Precio FROM Producto";
+    private static final String SQL_INSERT = "INSERT INTO Producto(Nombre, Categoria, Cantidad, Precio) VALUES(?, ?, ?, ?)";
+    private static final String SQL_UPDATE = "UPDATE Producto SET Nombre=?, Categoria=?, Cantidad=?, Precio=? WHERE Id_Producto=?";
+    private static final String SQL_DELETE = "DELETE FROM Producto WHERE Id_Producto=?";
+    private static final String SQL_SELECT_BY_ID = "SELECT Id_Producto, Nombre, Categoria, Cantidad, Precio FROM Producto WHERE Id_Producto=?";
+    private static final String SQL_SELECT_BY_NAME = "SELECT Id_Producto, Nombre, Categoria, Cantidad, Precio FROM Producto WHERE Nombre LIKE ?";
 
-    public AlmacenDAO() {
-        // Datos de prueba iniciales
-        agregarProducto(new AlmacenProducto(0, "Paracetamol", "Analgésicos", 5.99, 100));
-        agregarProducto(new AlmacenProducto(0, "Ibuprofeno", "Antiinflamatorios", 7.50, 50));
-        agregarProducto(new AlmacenProducto(0, "Ciprofloxacino", "Antibióticos", 14.90, 70));
-        agregarProducto(new AlmacenProducto(0, "Metoclopramida", "Antieméticos", 5.45, 120));
-        agregarProducto(new AlmacenProducto(0, "Warfarina", "Anticoagulantes", 19.30, 35));
-        agregarProducto(new AlmacenProducto(0, "Fluoxetina", "Antidepresivos", 17.25, 55));
-        agregarProducto(new AlmacenProducto(0, "Hidroclorotiazida", "Diuréticos", 8.75, 90));
-        agregarProducto(new AlmacenProducto(0, "Mometasona", "Corticosteroides", 23.60, 40));
-        agregarProducto(new AlmacenProducto(0, "Amlodipino", "Antihipertensivos", 10.20, 130));
-        agregarProducto(new AlmacenProducto(0, "Ondansetrón", "Antieméticos", 25.00, 60));
-        agregarProducto(new AlmacenProducto(0, "Insulina Glargina", "Antidiabéticos", 89.99, 25));
-        agregarProducto(new AlmacenProducto(0, "Dexametasona", "Antiinflamatorios", 12.30, 85));
-        agregarProducto(new AlmacenProducto(0, "Levofloxacino", "Antibióticos", 16.50, 65));
-        agregarProducto(new AlmacenProducto(0, "Tamsulosina", "Urológicos", 21.75, 45));
-        agregarProducto(new AlmacenProducto(0, "Mirtazapina", "Antidepresivos", 18.40, 50));
-        agregarProducto(new AlmacenProducto(0, "Esomeprazol", "Antiulcerosos", 11.90, 100));
-        agregarProducto(new AlmacenProducto(0, "Aciclovir", "Antivirales", 27.80, 30));
-        agregarProducto(new AlmacenProducto(0, "Carbamazepina", "Anticonvulsivos", 15.60, 40));
-        agregarProducto(new AlmacenProducto(0, "Venlafaxina", "Antidepresivos", 20.10, 60));
-        agregarProducto(new AlmacenProducto(0, "Ranitidina", "Antiulcerosos", 6.80, 150));
-        agregarProducto(new AlmacenProducto(0, "Cetirizina", "Antialérgicos", 5.25, 180));
-        agregarProducto(new AlmacenProducto(0, "Nistatina", "Antimicóticos", 9.40, 75));
-        agregarProducto(new AlmacenProducto(0, "Furosemida", "Diuréticos", 4.95, 200)); 
-        agregarProducto(new AlmacenProducto(0, "Quetiapina", "Antipsicóticos", 22.90, 35));
-        agregarProducto(new AlmacenProducto(0, "Vitamina B12", "Suplementos", 7.10, 300));
-        agregarProducto(new AlmacenProducto(0, "Lansoprazol", "Antiulcerosos", 8.45, 110));
-        agregarProducto(new AlmacenProducto(0, "Levonorgestrel", "Anticonceptivos", 29.99, 20));
+    public List<AlmacenProducto> obtenerTodos() {
+        List<AlmacenProducto> productos = new ArrayList<>();
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                int id = rs.getInt("Id_Producto");
+                String nombre = rs.getString("Nombre");
+                String categoria = rs.getString("Categoria");
+                int cantidad = rs.getInt("Cantidad");
+                double precio = rs.getDouble("Precio");
+                
+                productos.add(new AlmacenProducto(id, nombre, categoria, precio, cantidad));
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return productos;
     }
 
     public boolean agregarProducto(AlmacenProducto producto) {
-        producto.setId(++ultimoId);
-        return productos.add(producto);
-    }
-
-    public List<AlmacenProducto> obtenerTodos() {
-        return new ArrayList<>(productos);
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+            
+            stmt.setString(1, producto.getNombre());
+            stmt.setString(2, producto.getCategoria());
+            stmt.setInt(3, producto.getCantidad());
+            stmt.setDouble(4, producto.getPrecio());
+            
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                return false;
+            }
+            
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    producto.setId(generatedKeys.getInt(1));
+                }
+            }
+            return true;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
 
     public boolean actualizarProducto(int id, String nombre, String categoria, double precio, int cantidad) {
-        for (AlmacenProducto p : productos) {
-            if (p.getId() == id) {
-                p.setNombre(nombre);
-                p.setCategoria(categoria);
-                p.setPrecio(precio);
-                p.setCantidad(cantidad);
-                return true;
-            }
-        }
-        return false;
-    }
-    public AlmacenProducto buscarPorNombre(String nombre) {
-    for (AlmacenProducto p : productos) {
-        if (p.getNombre().equalsIgnoreCase(nombre)) { // Búsqueda sin distinción de mayúsculas
-            return p;
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_UPDATE)) {
+            
+            stmt.setString(1, nombre);
+            stmt.setString(2, categoria);
+            stmt.setInt(3, cantidad);
+            stmt.setDouble(4, precio);
+            stmt.setInt(5, id);
+            
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
         }
     }
-    return null;
-}
 
     public boolean eliminarProducto(int id) {
-    // Verificar si existe el producto antes de eliminar
-    boolean existe = productos.stream().anyMatch(p -> p.getId() == id);
-    
-    if (existe) {
-        productos.removeIf(p -> p.getId() == id);
-        return true;
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_DELETE)) {
+            
+            stmt.setInt(1, id);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return false;
+        }
     }
-    return false;
-}
-  
+
+    public AlmacenProducto buscarPorId(int id) {
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_ID)) {
+            
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    String nombre = rs.getString("Nombre");
+                    String categoria = rs.getString("Categoria");
+                    int cantidad = rs.getInt("Cantidad");
+                    double precio = rs.getDouble("Precio");
+                    
+                    return new AlmacenProducto(id, nombre, categoria, precio, cantidad);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    public AlmacenProducto buscarPorNombre(String nombre) {
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(SQL_SELECT_BY_NAME)) {
+            
+            stmt.setString(1, "%" + nombre + "%");
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("Id_Producto");
+                    String nombreProd = rs.getString("Nombre");
+                    String categoria = rs.getString("Categoria");
+                    int cantidad = rs.getInt("Cantidad");
+                    double precio = rs.getDouble("Precio");
+                    
+                    return new AlmacenProducto(id, nombreProd, categoria, precio, cantidad);
+                }
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+        }
+        return null;
+    }
 }

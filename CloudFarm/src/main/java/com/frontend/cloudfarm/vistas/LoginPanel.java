@@ -101,8 +101,7 @@ public class LoginPanel extends JFrame {
         gbc.anchor = GridBagConstraints.CENTER;
         rightPanel.add(btnEntrar, gbc);
         
-        
-        // --- Acción del botón --- verificar si funciona correctamente
+        // --- Acción del botón (MODIFICADA PARA CAJERO) ---
         btnEntrar.addActionListener(e -> {
             String usuario = txtUsuario.getText().trim();
             String contraseña = new String(txtPassword.getPassword()).trim();
@@ -120,22 +119,31 @@ public class LoginPanel extends JFrame {
                     // Cierra la ventana de login
                     this.dispose();
 
-                    // Redirige según el cargo
+                    // Redirige según el cargo (CON CAJERO INTEGRADO)
                     switch (cargo.toLowerCase()) {
                         case "gerente":
                             new MainFrameVisual().setVisible(true);
                             break;
                         case "cajero":
-                            new CajaPanel().setVisible(true);
+                            abrirPanelCajero();
                             break;
                         default:
-                            JOptionPane.showMessageDialog(null, "Rol no reconocido: " + cargo, "Error", JOptionPane.ERROR_MESSAGE);
+                            JOptionPane.showMessageDialog(null, 
+                                "Rol no reconocido: " + cargo, 
+                                "Error", 
+                                JOptionPane.ERROR_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos", "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, 
+                        "Usuario o contraseña incorrectos", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(this, "Error al conectar con la base de datos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, 
+                    "Error al conectar con la base de datos: " + ex.getMessage(), 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
                 ex.printStackTrace();
             }
         });
@@ -153,6 +161,20 @@ public class LoginPanel extends JFrame {
         mainPanel.add(rightPanel, BorderLayout.EAST); // Login
 
         add(mainPanel);
+    }
+
+    // Método para abrir el panel de cajero (NUEVO)
+    private void abrirPanelCajero() {
+        JFrame frameCajero = new JFrame("CloudFarm - Punto de Venta (Modo Cajero)");
+        frameCajero.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frameCajero.setSize(1000, 700);
+        frameCajero.setLocationRelativeTo(null);
+        
+        // Aquí integras tu CajaPanel
+        CajaPanel cajaPanel = new CajaPanel();
+        frameCajero.add(cajaPanel);
+        
+        frameCajero.setVisible(true);
     }
 
     public static void main(String[] args) {

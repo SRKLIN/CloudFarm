@@ -29,7 +29,7 @@ public class MainFrameVisual extends JFrame {
         leftPanel = new JPanel();
         rightPanel = new JPanel();
         btnAlmacen = new JButton("Almacén");
-        btnAgregarProducto = new JButton("Agregar Producto");
+        btnAgregarProducto = new JButton("Ventas"); //se cambio a  ventas
         btnUsuarios = new JButton("Usuarios");
     }
     
@@ -129,10 +129,12 @@ public class MainFrameVisual extends JFrame {
     }
     
     //parte agregada para mostrar el panel ya subido  se muestra el agregar producto revisar que sirva todo 
+    //cambiarle el nombre luego que ahora se utilizara para ver las ventas 
+    //MODIFICARSE URGENTE RIVISAR TODO
     private void mostrarAgregarProducto(ActionEvent e) {
         rightPanel.removeAll();
-        ProductoPanel productoPanel = new ProductoPanel();
-        rightPanel.add(productoPanel, BorderLayout.CENTER);
+        VentasPanel ventaspanel = new VentasPanel();
+        rightPanel.add(ventaspanel, BorderLayout.CENTER);
         rightPanel.revalidate();
         rightPanel.repaint();
     }
@@ -141,7 +143,8 @@ public class MainFrameVisual extends JFrame {
     //22/4/25
     private void mostrarUsuarios(ActionEvent e) {
         rightPanel.removeAll();
-        rightPanel.add(new JLabel("Gestión de Usuarios", SwingConstants.CENTER), BorderLayout.CENTER);
+        UsuarioPanel usuariospanel = new UsuarioPanel();
+        rightPanel.add(usuariospanel, BorderLayout.CENTER);
         rightPanel.revalidate();
         rightPanel.repaint();
     }

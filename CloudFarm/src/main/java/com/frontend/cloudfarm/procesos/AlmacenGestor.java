@@ -23,11 +23,15 @@ public class AlmacenGestor {
         return dao.actualizarProducto(id, nombre, categoria, precio, cantidad);
     }
 
+    public AlmacenProducto buscarProductoPorId(int id) {
+        return dao.buscarPorId(id);
+    }
+
     public AlmacenProducto buscarProductoPorNombre(String nombre) {
-    return dao.buscarPorNombre(nombre);
-}
+        return dao.buscarPorNombre(nombre);
+    }
     
-   public boolean eliminarProducto(int id) {
-    return dao.eliminarProducto(id); // Debe retornar true si se eliminó
-}
+    public boolean eliminarProducto(int id) {
+        return dao.eliminarProducto(id);
+    }
 }
