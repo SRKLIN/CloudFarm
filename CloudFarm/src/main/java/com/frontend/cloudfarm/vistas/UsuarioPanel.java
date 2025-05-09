@@ -23,7 +23,8 @@ public class UsuarioPanel extends JPanel {
     
     private JTable tablaUsuarios;
     private DefaultTableModel modeloTabla;
-    private JTextField txtBuscar, txtUsuario, txtCargo, txtContraseña;
+    private JTextField txtBuscar, txtUsuario, txtContraseña;
+    private JComboBox<String> comboCargo;
     private JButton btnAgregar, btnEditar, btnEliminar, btnLimpiar, btnBuscar;
     private ProcesosUsuario procesos;
     
@@ -47,7 +48,7 @@ public class UsuarioPanel extends JPanel {
         txtBuscar = createStyledTextField(20);
         btnBuscar = createFarmaButton("Buscar", COLOR_BOTON_SECUNDARIO);
         
-        panelBusqueda.add(new JLabel("Buscar usuario:"));
+        panelBusqueda.add(new JLabel("Buscar por ID:"));
         panelBusqueda.add(txtBuscar);
         panelBusqueda.add(btnBuscar);
         
@@ -55,7 +56,7 @@ public class UsuarioPanel extends JPanel {
         modeloTabla = new DefaultTableModel(new Object[]{"ID", "Usuario", "Cargo", "Contraseña"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Hacer la tabla no editable
+                return false;
             }
         };
         
@@ -78,13 +79,14 @@ public class UsuarioPanel extends JPanel {
         panelCampos.setBorder(BorderFactory.createTitledBorder("Datos del Usuario"));
         
         txtUsuario = createStyledTextField(15);
-        txtCargo = createStyledTextField(15);
+        comboCargo = new JComboBox<>(new String[]{"gerente", "cajero"});
+        comboCargo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtContraseña = createStyledTextField(15);
         
         panelCampos.add(new JLabel("Usuario:"));
         panelCampos.add(txtUsuario);
         panelCampos.add(new JLabel("Cargo:"));
-        panelCampos.add(txtCargo);
+        panelCampos.add(comboCargo);
         panelCampos.add(new JLabel("Contraseña:"));
         panelCampos.add(txtContraseña);
         
@@ -161,7 +163,7 @@ public class UsuarioPanel extends JPanel {
     }
     
     private void cargarUsuarios() {
-        modeloTabla.setRowCount(0); // Limpiar tabla
+        modeloTabla.setRowCount(0);
         List<DatosUsuario> usuarios = procesos.obtenerTodosUsuarios();
         
         for (DatosUsuario usuario : usuarios) {
@@ -169,7 +171,7 @@ public class UsuarioPanel extends JPanel {
                 usuario.getId_usuario(),
                 usuario.getUsuario(),
                 usuario.getCargo(),
-                "••••••••" // No mostrar contraseña real
+                "••••••••"
             });
         }
     }
@@ -182,7 +184,7 @@ public class UsuarioPanel extends JPanel {
             
             if (usuario != null) {
                 txtUsuario.setText(usuario.getUsuario());
-                txtCargo.setText(usuario.getCargo());
+                comboCargo.setSelectedItem(usuario.getCargo());
                 txtContraseña.setText(usuario.getContraseña());
             }
         }
@@ -190,11 +192,16 @@ public class UsuarioPanel extends JPanel {
     
     private void agregarUsuario(ActionEvent e) {
         String usuario = txtUsuario.getText().trim();
-        String cargo = txtCargo.getText().trim();
+        String cargo = comboCargo.getSelectedItem().toString();
         String contraseña = txtContraseña.getText().trim();
         
-        if (usuario.isEmpty() || cargo.isEmpty() || contraseña.isEmpty()) {
+        if (usuario.isEmpty() || contraseña.isEmpty()) {
             showMessage("Complete todos los campos", "Validación", COLOR_ERROR);
+            return;
+        }
+        
+        if (usuarioExiste(usuario)) {
+            showMessage("Error, usuario ya existente", "Error", COLOR_ERROR);
             return;
         }
         
@@ -209,6 +216,11 @@ public class UsuarioPanel extends JPanel {
         }
     }
     
+    private boolean usuarioExiste(String usuario) {
+        List<DatosUsuario> usuarios = procesos.obtenerTodosUsuarios();
+        return usuarios.stream().anyMatch(u -> u.getUsuario().equalsIgnoreCase(usuario));
+    }
+    
     private void editarUsuario(ActionEvent e) {
         int filaSeleccionada = tablaUsuarios.getSelectedRow();
         if (filaSeleccionada < 0) {
@@ -218,10 +230,10 @@ public class UsuarioPanel extends JPanel {
         
         int idUsuario = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
         String usuario = txtUsuario.getText().trim();
-        String cargo = txtCargo.getText().trim();
+        String cargo = comboCargo.getSelectedItem().toString();
         String contraseña = txtContraseña.getText().trim();
         
-        if (usuario.isEmpty() || cargo.isEmpty() || contraseña.isEmpty()) {
+        if (usuario.isEmpty() || contraseña.isEmpty()) {
             showMessage("Complete todos los campos", "Validación", COLOR_ERROR);
             return;
         }
@@ -237,61 +249,73 @@ public class UsuarioPanel extends JPanel {
     }
     
     private void eliminarUsuario(ActionEvent e) {
-        int filaSeleccionada = tablaUsuarios.getSelectedRow();
-        if (filaSeleccionada < 0) {
-            showMessage("Seleccione un usuario para eliminar", "Validación", COLOR_ERROR);
-            return;
-        }
-        
-        int idUsuario = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
-        
-        int confirmacion = JOptionPane.showConfirmDialog(
-            this,
-            "¿Está seguro de eliminar este usuario?",
-            "Confirmar eliminación",
-            JOptionPane.YES_NO_OPTION,
-            JOptionPane.WARNING_MESSAGE
-        );
-        
-        if (confirmacion == JOptionPane.YES_OPTION) {
-            if (procesos.eliminarUsuario(idUsuario)) {
-                showMessage("Usuario eliminado correctamente", "Éxito", COLOR_EXITO);
-                cargarUsuarios();
-                limpiarCampos();
-            } else {
-                showMessage("Error al eliminar usuario", "Error", COLOR_ERROR);
-            }
+    int filaSeleccionada = tablaUsuarios.getSelectedRow();
+    if (filaSeleccionada < 0) {
+        showMessage("Seleccione un usuario para eliminar", "Validación", COLOR_ERROR);
+        return;
+    }
+
+    int idUsuario = (int) modeloTabla.getValueAt(filaSeleccionada, 0);
+    String usuarioActual = System.getProperty("usuario.actual");  // Aquí se obtiene el usuario actual
+
+    DatosUsuario usuarioAEliminar = procesos.buscarUsuarioPorId(idUsuario);
+
+    if (usuarioAEliminar != null && usuarioAEliminar.getUsuario().equals(usuarioActual)) {
+        showMessage("Error, no puede eliminar su propio usuario", "Error", COLOR_ERROR);
+        return;
+    }
+
+    int confirmacion = JOptionPane.showConfirmDialog(
+        this,
+        "¿Está seguro de eliminar este usuario?",
+        "Confirmar eliminación",
+        JOptionPane.YES_NO_OPTION,
+        JOptionPane.WARNING_MESSAGE
+    );
+
+    if (confirmacion == JOptionPane.YES_OPTION) {
+        if (procesos.eliminarUsuario(idUsuario)) {
+            showMessage("Usuario eliminado correctamente", "Éxito", COLOR_EXITO);
+            cargarUsuarios();
+            limpiarCampos();
+        } else {
+            showMessage("Error al eliminar usuario", "Error", COLOR_ERROR);
         }
     }
+}
     
     private void buscarUsuario(ActionEvent e) {
-        String textoBusqueda = txtBuscar.getText().trim().toLowerCase();
+        String textoBusqueda = txtBuscar.getText().trim();
         
         if (textoBusqueda.isEmpty()) {
             cargarUsuarios();
             return;
         }
         
-        modeloTabla.setRowCount(0); // Limpiar tabla
-        List<DatosUsuario> usuarios = procesos.obtenerTodosUsuarios();
-        
-        for (DatosUsuario usuario : usuarios) {
-            if (usuario.getUsuario().toLowerCase().contains(textoBusqueda) ||
-                usuario.getCargo().toLowerCase().contains(textoBusqueda)) {
-                
+        try {
+            int idBusqueda = Integer.parseInt(textoBusqueda);
+            DatosUsuario usuario = procesos.buscarUsuarioPorId(idBusqueda);
+            
+            modeloTabla.setRowCount(0);
+            
+            if (usuario != null) {
                 modeloTabla.addRow(new Object[]{
                     usuario.getId_usuario(),
                     usuario.getUsuario(),
                     usuario.getCargo(),
                     "••••••••"
                 });
+            } else {
+                showMessage("No se encontró usuario con ID: " + idBusqueda, "Búsqueda", COLOR_ERROR);
             }
+        } catch (NumberFormatException ex) {
+            showMessage("Ingrese un ID válido (número entero)", "Error", COLOR_ERROR);
         }
     }
     
     private void limpiarCampos() {
         txtUsuario.setText("");
-        txtCargo.setText("");
+        comboCargo.setSelectedIndex(0);
         txtContraseña.setText("");
         tablaUsuarios.clearSelection();
     }
